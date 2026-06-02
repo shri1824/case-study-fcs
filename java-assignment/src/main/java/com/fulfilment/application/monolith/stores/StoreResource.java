@@ -152,34 +152,4 @@ public class StoreResource {
               Status.BAD_REQUEST);
     }
   }
-
-  @Provider
-  public static class ErrorMapper implements ExceptionMapper<Exception> {
-
-    @Inject
-    ObjectMapper objectMapper;
-
-    @Override
-    public Response toResponse(Exception exception) {
-
-      int status = Status.INTERNAL_SERVER_ERROR.getStatusCode();
-
-      if (exception instanceof WebApplicationException webEx) {
-        status = webEx.getResponse().getStatus();
-      }
-
-      LOGGER.errorf(exception,
-              "Request processing failed. status=%d",
-              status);
-
-      ObjectNode error = objectMapper.createObjectNode();
-      error.put("status", status);
-      error.put("exceptionType", exception.getClass().getSimpleName());
-      error.put("message", exception.getMessage());
-
-      return Response.status(status)
-              .entity(error)
-              .build();
-    }
-  }
 }
