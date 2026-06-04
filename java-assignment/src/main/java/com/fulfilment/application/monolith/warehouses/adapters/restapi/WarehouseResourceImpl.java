@@ -48,6 +48,7 @@ public class WarehouseResourceImpl implements WarehouseResource {
     List<com.warehouse.api.beans.Warehouse> warehouses =
             warehouseStore.getAll()
                     .stream()
+                    .filter(w -> w.archivedAt == null)
                     .map(this::toWarehouseResponse)
                     .toList();
 
