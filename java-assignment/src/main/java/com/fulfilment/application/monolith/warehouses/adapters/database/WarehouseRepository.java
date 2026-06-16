@@ -1,5 +1,6 @@
 package com.fulfilment.application.monolith.warehouses.adapters.database;
 
+import com.fulfilment.application.monolith.exception.WarehouseNotFoundException;
 import com.fulfilment.application.monolith.warehouses.domain.models.Warehouse;
 import com.fulfilment.application.monolith.warehouses.domain.ports.WarehouseStore;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
@@ -29,6 +30,7 @@ public class WarehouseRepository implements WarehouseStore, PanacheRepository<Db
     db.archivedAt = warehouse.archivedAt;
 
     persist(db);
+    warehouse.id = db.id; // important
   }
 
   @Override
@@ -36,18 +38,17 @@ public class WarehouseRepository implements WarehouseStore, PanacheRepository<Db
   public void update(Warehouse warehouse) {
 
     DbWarehouse entity =
-            find("businessUnitCode", warehouse.businessUnitCode)
-                    .firstResult();
+            find("businessUnitCode", warehouse.businessUnitCode).firstResult();
 
     if (entity == null) {
-      return;
+      throw new WarehouseNotFoundException("Warehouse not found");
     }
 
     entity.location = warehouse.location;
     entity.capacity = warehouse.capacity;
     entity.stock = warehouse.stock;
-    entity.createdAt = warehouse.createdAt;
     entity.archivedAt = warehouse.archivedAt;
+    persist(entity);
   }
 
   @Override
@@ -67,5 +68,15 @@ public class WarehouseRepository implements WarehouseStore, PanacheRepository<Db
                     .firstResult();
 
     return entity == null ? null : entity.toWarehouse();
+  }
+
+  @Override
+  public Warehouse findWarehouseById(Long id) {
+
+    DbWarehouse dbWarehouse = find("id", id).firstResult();
+
+    return dbWarehouse != null
+            ? dbWarehouse.toWarehouse()
+            : null;
   }
 }

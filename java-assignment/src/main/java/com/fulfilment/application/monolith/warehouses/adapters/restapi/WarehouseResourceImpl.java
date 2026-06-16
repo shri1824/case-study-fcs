@@ -16,7 +16,6 @@ import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.WebApplicationException;
 
-import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
 
 import java.time.LocalDateTime;
@@ -93,17 +92,27 @@ public class WarehouseResourceImpl implements WarehouseResource {
 
     return toWarehouseResponse(warehouse);
   }
-
   @Override
-  public com.warehouse.api.beans.Warehouse getAWarehouseUnitByID(
-          String id) {
+  public com.warehouse.api.beans.Warehouse getAWarehouseUnitByID(String id) {
 
-    LOGGER.debugf(
-            "Fetching warehouse. businessUnitCode=%s",
-            id);
+    Long warehouseId;
 
-    Warehouse warehouse =
-            findWarehouseOrThrow(id);
+    try {
+      warehouseId = Long.valueOf(id);
+    } catch (NumberFormatException e) {
+      throw new WebApplicationException(
+              "Invalid warehouse id",
+              400);
+    }
+
+    var warehouse =
+            warehouseStore.findWarehouseById(warehouseId);
+
+    if (warehouse == null) {
+      throw new WebApplicationException(
+              "Warehouse not found",
+              404);
+    }
 
     return toWarehouseResponse(warehouse);
   }
@@ -111,18 +120,26 @@ public class WarehouseResourceImpl implements WarehouseResource {
   @Override
   public void archiveAWarehouseUnitByID(String id) {
 
-    LOGGER.infof(
-            "Archiving warehouse. businessUnitCode=%s",
-            id);
+    Long warehouseId;
+
+    try {
+      warehouseId = Long.valueOf(id);
+    } catch (NumberFormatException e) {
+      throw new WebApplicationException(
+              "Invalid warehouse id",
+              400);
+    }
 
     Warehouse warehouse =
-            findWarehouseOrThrow(id);
+            warehouseStore.findWarehouseById(warehouseId);
+
+    if (warehouse == null) {
+      throw new WebApplicationException(
+              "Warehouse not found",
+              404);
+    }
 
     archiveWarehouseOperation.archive(warehouse);
-
-    LOGGER.infof(
-            "Warehouse archived successfully. businessUnitCode=%s",
-            id);
   }
 
   @Override
@@ -133,37 +150,27 @@ public class WarehouseResourceImpl implements WarehouseResource {
     LOGGER.infof(
             "Replacing warehouse. businessUnitCode=%s",
             businessUnitCode);
-
-    Warehouse replacement =
-            fromRequest(data);
-
-    replacement.businessUnitCode =
-            businessUnitCode;
-
-    replacement.createdAt =
-            LocalDateTime.now();
+    Warehouse replacement = fromRequest(data);
+    replacement.businessUnitCode = businessUnitCode;
+    replacement.createdAt = LocalDateTime.now();
 
     try {
 
       replaceWarehouseOperation.replace(replacement);
-
       LOGGER.infof(
               "Warehouse replaced successfully. businessUnitCode=%s",
               businessUnitCode);
 
     } catch (WarehouseNotFoundException e) {
-
       LOGGER.warnf(
               "Warehouse replacement failed. businessUnitCode=%s, reason=%s",
               businessUnitCode,
               e.getMessage());
-
       throw new WebApplicationException(
               e.getMessage(),
               404);
 
     } catch (WarehouseValidationException e) {
-
       LOGGER.warnf(
               "Warehouse validation failed. businessUnitCode=%s, reason=%s",
               businessUnitCode,
@@ -173,17 +180,13 @@ public class WarehouseResourceImpl implements WarehouseResource {
               e.getMessage(),
               400);
     }
-
     return toWarehouseResponse(replacement);
   }
-
   private Warehouse findWarehouseOrThrow(
           String businessUnitCode) {
-
     Warehouse warehouse =
             warehouseStore.findByBusinessUnitCode(
                     businessUnitCode);
-
     if (warehouse == null) {
 
       LOGGER.warnf(
@@ -194,7 +197,6 @@ public class WarehouseResourceImpl implements WarehouseResource {
               "Warehouse not found",
               Status.BAD_REQUEST);
     }
-
     return warehouse;
   }
 
@@ -202,42 +204,27 @@ public class WarehouseResourceImpl implements WarehouseResource {
           com.warehouse.api.beans.Warehouse data) {
 
     Warehouse warehouse = new Warehouse();
-
-    warehouse.businessUnitCode =
-            data.getBusinessUnitCode();
-
-    warehouse.location =
-            data.getLocation();
-
-    warehouse.capacity =
-            data.getCapacity();
-
-    warehouse.stock =
-            data.getStock();
+    warehouse.businessUnitCode = data.getBusinessUnitCode();
+    warehouse.location = data.getLocation();
+    warehouse.capacity = data.getCapacity();
+    warehouse.stock = data.getStock();
 
     return warehouse;
   }
 
   private com.warehouse.api.beans.Warehouse toWarehouseResponse(
-          Warehouse warehouse) {
+          com.fulfilment.application.monolith.warehouses.domain.models.Warehouse warehouse) {
 
-    var response =
-            new com.warehouse.api.beans.Warehouse();
+    com.warehouse.api.beans.Warehouse response = new com.warehouse.api.beans.Warehouse();
 
-    response.setId(
-            warehouse.businessUnitCode);
+    if (warehouse.id != null) {
+      response.setId(String.valueOf(warehouse.id));
+    }
 
-    response.setBusinessUnitCode(
-            warehouse.businessUnitCode);
-
-    response.setLocation(
-            warehouse.location);
-
-    response.setCapacity(
-            warehouse.capacity);
-
-    response.setStock(
-            warehouse.stock);
+    response.setBusinessUnitCode(warehouse.businessUnitCode);
+    response.setLocation(warehouse.location);
+    response.setCapacity(warehouse.capacity);
+    response.setStock(warehouse.stock);
 
     return response;
   }

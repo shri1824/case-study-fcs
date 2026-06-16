@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 
 
 import io.quarkus.test.junit.QuarkusTest;
@@ -24,7 +25,7 @@ public class WarehouseEndpointTest {
             .then()
             .statusCode(200)
             .body(
-                    containsString("MWH.001"),
+                    containsString("businessUnitCode"),
                     containsString("MWH.012"),
                     containsString("MWH.023"));
   }
@@ -34,7 +35,7 @@ public class WarehouseEndpointTest {
 
     given()
             .when()
-            .get(PATH + "/MWH.001")
+            .get(PATH + "/1")
             .then()
             .statusCode(200)
             .body(
@@ -59,7 +60,7 @@ public class WarehouseEndpointTest {
             """
             {
               "businessUnitCode":"MWH.999",
-              "location":"EINDHOVEN-001",
+              "location":"ZWOLLE-002",
               "capacity":50,
               "stock":25
             }
@@ -73,7 +74,7 @@ public class WarehouseEndpointTest {
             .then()
             .statusCode(200)
             .body("businessUnitCode", equalTo("MWH.999"))
-            .body("location", equalTo("EINDHOVEN-001"))
+            .body("location", equalTo("ZWOLLE-002"))
             .body("capacity", equalTo(50))
             .body("stock", equalTo(25));
   }
@@ -189,7 +190,7 @@ public class WarehouseEndpointTest {
 
     given()
             .when()
-            .delete(PATH + "/MWH.995")
+            .delete(PATH + "/1")
             .then()
             .statusCode(204);
   }
@@ -235,7 +236,6 @@ public class WarehouseEndpointTest {
     String replacement =
             """
             {
-              "businessUnitCode":"UNKNOWN",
               "location":"AMSTERDAM-002",
               "capacity":20,
               "stock":10
@@ -308,17 +308,20 @@ public class WarehouseEndpointTest {
             }
             """;
 
-    given()
-            .contentType(ContentType.JSON)
-            .body(request)
-            .when()
-            .post(PATH)
-            .then()
-            .statusCode(200);
+    String warehouseId =
+            given()
+                    .contentType(ContentType.JSON)
+                    .body(request)
+                    .when()
+                    .post(PATH)
+                    .then()
+                    .statusCode(200)
+                    .extract()
+                    .path("id");
 
     given()
             .when()
-            .delete(PATH + "/MWH.994")
+            .delete(PATH + "/" + warehouseId)
             .then()
             .statusCode(204);
 
@@ -327,6 +330,85 @@ public class WarehouseEndpointTest {
             .get(PATH)
             .then()
             .statusCode(200)
-            .body((containsString("MWH.994")));
+            .body(not(containsString("MWH.994")));
   }
+
+  @Test
+  void givenExistingWarehouse_whenGetById_thenReturnWarehouse() {
+
+    given()
+            .when()
+            .get(PATH + "/1")
+            .then()
+            .statusCode(200)
+            .body("id", equalTo("1"))
+            .body("businessUnitCode", equalTo("MWH.001"))
+            .body("location", equalTo("ZWOLLE-001"));
+  }
+  @Test
+  void givenWarehouseId_whenGetWarehouse_thenReturnWarehouse() {
+
+    String request =
+            """
+            {
+              "businessUnitCode":"MWH.TEST",
+              "location":"EINDHOVEN-001",
+              "capacity":50,
+              "stock":20
+            }
+            """;
+
+    String id =
+            given()
+                    .contentType(ContentType.JSON)
+                    .body(request)
+                    .when()
+                    .post(PATH)
+                    .then()
+                    .statusCode(200)
+                    .body("id", notNullValue())
+                    .extract()
+                    .path("id");
+
+    given()
+            .when()
+            .get(PATH + "/" + id)
+            .then()
+            .statusCode(200)
+            .body("id", equalTo(id))
+            .body("businessUnitCode", equalTo("MWH.TEST"))
+            .body("location", equalTo("EINDHOVEN-001"));
+  }
+
+  @Test
+  void givenWarehouseId_whenArchiveWarehouse_thenReturn204() {
+
+    String request =
+            """
+            {
+              "businessUnitCode":"MWH.DELETE.TEST",
+              "location":"AMSTERDAM-002",
+              "capacity":20,
+              "stock":10
+            }
+            """;
+
+    String id =
+            given()
+                    .contentType(ContentType.JSON)
+                    .body(request)
+                    .when()
+                    .post(PATH)
+                    .then()
+                    .statusCode(200)
+                    .extract()
+                    .path("id");
+
+    given()
+            .when()
+            .delete(PATH + "/" + id)
+            .then()
+            .statusCode(204);
+  }
+
 }
