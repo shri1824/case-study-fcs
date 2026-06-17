@@ -72,8 +72,21 @@ stages:
 
         pool:
           vmImage: ubuntu-latest
+        services:
+          postgres:
+            image: postgres:16
+            ports:
+              - 15432:5432
+            env:
+              POSTGRES_DB: quarkus_test
+              POSTGRES_USER: quarkus_test
+              POSTGRES_PASSWORD: quarkus_test
         steps:
           - checkout: self
+          - bash: |
+              echo "Waiting for PostgreSQL..."
+              sleep 10
+            displayName: Wait for PostgreSQL
           - task: Maven@4
             displayName: Run Unit Tests
             inputs:
@@ -114,11 +127,21 @@ stages:
 
         pool:
           vmImage: ubuntu-latest
-
+        services:
+          postgres:
+            image: postgres:16
+            ports:
+              - 15432:5432
+            env:
+              POSTGRES_DB: quarkus_test
+              POSTGRES_USER: quarkus_test
+              POSTGRES_PASSWORD: quarkus_test
         steps:
-
           - checkout: self
-
+          - bash: |
+              echo "Waiting for PostgreSQL..."
+              sleep 10
+            displayName: Wait for PostgreSQL
           - task: Maven@4
             displayName: Run Integration Tests
             inputs:

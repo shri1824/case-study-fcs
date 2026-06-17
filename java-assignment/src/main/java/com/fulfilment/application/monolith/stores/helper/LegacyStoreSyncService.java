@@ -58,4 +58,9 @@ public class LegacyStoreSyncService {
             }
         });
     }
+    public void syncDelete(Store store) {
+        txCallback.afterCommit(
+                () -> gateway.deleteStoreOnLegacySystem(store)
+        );
+    }
 }

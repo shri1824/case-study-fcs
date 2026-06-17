@@ -2,6 +2,7 @@ package com.fulfilment.application.monolith.stores;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -12,6 +13,9 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 
+import io.restassured.response.Response;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
@@ -19,6 +23,11 @@ public class StoreResourceTest {
 
     @InjectMock
     LegacyStoreSyncService legacySync;
+    @InjectMock
+    LegacyStoreManagerGateway gateway;
+
+    @Inject
+    StoreTestDataFactory storeTestDataFactory;
 
     private static final String PATH = "/store";
 
@@ -67,13 +76,13 @@ public class StoreResourceTest {
     }
 
     @Test
-    void givenUnknownStore_whenGetById_thenReturn400() {
+    void givenUnknownStore_whenGetById_thenReturn404() {
 
         given()
                 .when()
                 .get(PATH + "/999999")
                 .then()
-                .statusCode(400);
+                .statusCode(404);
     }
 
     @Test
@@ -81,9 +90,10 @@ public class StoreResourceTest {
 
         given()
                 .when()
-                .get(PATH + "/999999")
+                .get("/store/999")
                 .then()
-                .statusCode(400);
+                .statusCode(404)
+                .body("status", equalTo(404));
     }
 
     @Test
@@ -128,7 +138,7 @@ public class StoreResourceTest {
     }
 
     @Test
-    void givenStoreWithoutName_whenCreate_thenReturn400() {
+    void givenStoreWithoutName_whenCreate_thenReturn422() {
 
         given()
                 .contentType(ContentType.JSON)
@@ -140,7 +150,7 @@ public class StoreResourceTest {
                 .when()
                 .post(PATH)
                 .then()
-                .statusCode(400);
+                .statusCode(422);
     }
 
     @Test
@@ -169,7 +179,7 @@ public class StoreResourceTest {
     }
 
     @Test
-    void givenUnknownStore_whenUpdate_thenReturn400() {
+    void givenUnknownStore_whenUpdate_thenReturn404() {
 
         given()
                 .contentType(ContentType.JSON)
@@ -182,11 +192,11 @@ public class StoreResourceTest {
                 .when()
                 .put(PATH + "/999999")
                 .then()
-                .statusCode(400);
+                .statusCode(404);
     }
 
     @Test
-    void givenStoreWithoutName_whenUpdate_thenReturn400() {
+    void givenStoreWithoutName_whenUpdate_thenReturn422() {
 
         Long id = createStore("STORE", 10);
 
@@ -200,7 +210,7 @@ public class StoreResourceTest {
                 .when()
                 .put(PATH + "/" + id)
                 .then()
-                .statusCode(400);
+                .statusCode(422);
     }
 
     @Test
@@ -250,7 +260,7 @@ public class StoreResourceTest {
     }
 
     @Test
-    void givenUnknownStore_whenPatch_thenReturn400() {
+    void givenUnknownStore_whenPatch_thenReturn404() {
 
         given()
                 .contentType(ContentType.JSON)
@@ -262,11 +272,11 @@ public class StoreResourceTest {
                 .when()
                 .patch(PATH + "/999999")
                 .then()
-                .statusCode(400);
+                .statusCode(404);
     }
 
-    @Test
-    void givenExistingStore_whenDelete_thenReturn204() {
+
+    void givenExistingStore_whenDelete_thenReturn204_TTTTTTTTTTTTTTTT() {
 
         Long id = createStore("STORE_TO_DELETE", 20);
 
@@ -280,16 +290,50 @@ public class StoreResourceTest {
                 .when()
                 .get(PATH + "/" + id)
                 .then()
-                .statusCode(400);
+                .statusCode(204);
+    }
+    @Test
+    void givenExistingStore_whenDelete_thenReturn204() {
+
+        Store store =
+                storeTestDataFactory.createStoreForDeleteTest();
+
+        given()
+                .when()
+                .delete("/store/" + store.id)
+                .then()
+                .statusCode(204);
     }
 
     @Test
-    void givenUnknownStore_whenDelete_thenReturn400() {
+    void givenUnknownStore_whenDelete_thenReturn404() {
 
         given()
                 .when()
                 .delete(PATH + "/999999")
                 .then()
-                .statusCode(400);
+                .statusCode(404);
     }
+
+    @Test
+    void givenExistingStore_whenDelete_thenReturn204AndStoreIsRemoved() {
+
+        Store store =
+                storeTestDataFactory.createStoreForDeleteTest();
+
+
+        given()
+                .when()
+                .delete("/store/" + store.id)
+                .then()
+                .statusCode(204);
+
+
+        given()
+                .when()
+                .get("/store/" + store.id)
+                .then()
+                .statusCode(404);
+    }
+
 }

@@ -139,7 +139,16 @@ public class WarehouseResourceImpl implements WarehouseResource {
               404);
     }
 
-    archiveWarehouseOperation.archive(warehouse);
+    try {
+
+      archiveWarehouseOperation.archive(warehouse);
+
+    } catch (WarehouseValidationException e) {
+
+      throw new WebApplicationException(
+              e.getMessage(),
+              400);
+    }
   }
 
   @Override
@@ -195,7 +204,7 @@ public class WarehouseResourceImpl implements WarehouseResource {
 
       throw new WebApplicationException(
               "Warehouse not found",
-              Status.BAD_REQUEST);
+              Status.NOT_FOUND);
     }
     return warehouse;
   }

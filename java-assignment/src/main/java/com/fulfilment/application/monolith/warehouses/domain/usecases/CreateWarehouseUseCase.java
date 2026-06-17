@@ -44,7 +44,6 @@ public class CreateWarehouseUseCase implements CreateWarehouseOperation {
               "Business unit code already exists");
     }
   }
-
   private void validateLocationCapacity(
           Location location,
           Warehouse warehouse) {

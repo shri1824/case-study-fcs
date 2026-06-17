@@ -9,6 +9,7 @@ import static org.hamcrest.Matchers.notNullValue;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
@@ -58,13 +59,13 @@ public class WarehouseEndpointTest {
 
     String request =
             """
-            {
-              "businessUnitCode":"MWH.999",
-              "location":"ZWOLLE-002",
-              "capacity":50,
-              "stock":25
-            }
-            """;
+                    {
+                      "businessUnitCode":"MWH.999",
+                      "location":"ZWOLLE-002",
+                      "capacity":50,
+                      "stock":25
+                    }
+                    """;
 
     given()
             .contentType(ContentType.JSON)
@@ -84,13 +85,21 @@ public class WarehouseEndpointTest {
 
     String request =
             """
-            {
-              "businessUnitCode":"MWH.001",
-              "location":"EINDHOVEN-001",
-              "capacity":50,
-              "stock":25
-            }
-            """;
+                    {
+                      "businessUnitCode":"MWH.EXISTING.TEST",
+                      "location":"VETSBY-001",
+                      "capacity":20,
+                      "stock":10
+                    }
+                    """;
+
+    given()
+            .contentType(ContentType.JSON)
+            .body(request)
+            .when()
+            .post(PATH)
+            .then()
+            .statusCode(200);
 
     given()
             .contentType(ContentType.JSON)
@@ -106,13 +115,13 @@ public class WarehouseEndpointTest {
 
     String request =
             """
-            {
-              "businessUnitCode":"MWH.998",
-              "location":"INVALID-001",
-              "capacity":50,
-              "stock":25
-            }
-            """;
+                    {
+                      "businessUnitCode":"MWH.998",
+                      "location":"INVALID-001",
+                      "capacity":50,
+                      "stock":25
+                    }
+                    """;
 
     given()
             .contentType(ContentType.JSON)
@@ -128,13 +137,13 @@ public class WarehouseEndpointTest {
 
     String request =
             """
-            {
-              "businessUnitCode":"MWH.997",
-              "location":"EINDHOVEN-001",
-              "capacity":10,
-              "stock":20
-            }
-            """;
+                    {
+                      "businessUnitCode":"MWH.997",
+                      "location":"EINDHOVEN-001",
+                      "capacity":10,
+                      "stock":20
+                    }
+                    """;
 
     given()
             .contentType(ContentType.JSON)
@@ -150,13 +159,13 @@ public class WarehouseEndpointTest {
 
     String request =
             """
-            {
-              "businessUnitCode":"MWH.996",
-              "location":"ZWOLLE-001",
-              "capacity":100,
-              "stock":20
-            }
-            """;
+                    {
+                      "businessUnitCode":"MWH.996",
+                      "location":"ZWOLLE-001",
+                      "capacity":100,
+                      "stock":20
+                    }
+                    """;
 
     given()
             .contentType(ContentType.JSON)
@@ -172,13 +181,13 @@ public class WarehouseEndpointTest {
 
     String request =
             """
-            {
-              "businessUnitCode":"MWH.995",
-              "location":"EINDHOVEN-001",
-              "capacity":50,
-              "stock":20
-            }
-            """;
+                    {
+                      "businessUnitCode":"MWH.995",
+                      "location":"EINDHOVEN-001",
+                      "capacity":50,
+                      "stock":20
+                    }
+                    """;
 
     given()
             .contentType(ContentType.JSON)
@@ -210,13 +219,13 @@ public class WarehouseEndpointTest {
 
     String replacement =
             """
-            {
-              "businessUnitCode":"MWH.001",
-              "location":"AMSTERDAM-002",
-              "capacity":20,
-              "stock":10
-            }
-            """;
+                    {
+                      "businessUnitCode":"MWH.001",
+                      "location":"AMSTERDAM-002",
+                      "capacity":20,
+                      "stock":10
+                    }
+                    """;
 
     given()
             .contentType(ContentType.JSON)
@@ -235,12 +244,12 @@ public class WarehouseEndpointTest {
 
     String replacement =
             """
-            {
-              "location":"AMSTERDAM-002",
-              "capacity":20,
-              "stock":10
-            }
-            """;
+                    {
+                      "location":"AMSTERDAM-002",
+                      "capacity":20,
+                      "stock":10
+                    }
+                    """;
 
     given()
             .contentType(ContentType.JSON)
@@ -256,13 +265,13 @@ public class WarehouseEndpointTest {
 
     String replacement =
             """
-            {
-              "businessUnitCode":"MWH.001",
-              "location":"AMSTERDAM-002",
-              "capacity":20,
-              "stock":999
-            }
-            """;
+                    {
+                      "businessUnitCode":"MWH.001",
+                      "location":"AMSTERDAM-002",
+                      "capacity":20,
+                      "stock":999
+                    }
+                    """;
 
     given()
             .contentType(ContentType.JSON)
@@ -278,13 +287,13 @@ public class WarehouseEndpointTest {
 
     String replacement =
             """
-            {
-              "businessUnitCode":"MWH.001",
-              "location":"AMSTERDAM-002",
-              "capacity":5,
-              "stock":10
-            }
-            """;
+                    {
+                      "businessUnitCode":"MWH.001",
+                      "location":"AMSTERDAM-002",
+                      "capacity":5,
+                      "stock":10
+                    }
+                    """;
 
     given()
             .contentType(ContentType.JSON)
@@ -300,13 +309,13 @@ public class WarehouseEndpointTest {
 
     String request =
             """
-            {
-              "businessUnitCode":"MWH.994",
-              "location":"EINDHOVEN-001",
-              "capacity":50,
-              "stock":20
-            }
-            """;
+                    {
+                      "businessUnitCode":"MWH.ARCHIVE.LIST.TEST",
+                      "location":"EINDHOVEN-001",
+                      "capacity":50,
+                      "stock":20
+                    }
+                    """;
 
     String warehouseId =
             given()
@@ -330,7 +339,7 @@ public class WarehouseEndpointTest {
             .get(PATH)
             .then()
             .statusCode(200)
-            .body(not(containsString("MWH.994")));
+            .body(not(containsString("MWH.ARCHIVE.LIST.TEST")));
   }
 
   @Test
@@ -345,18 +354,19 @@ public class WarehouseEndpointTest {
             .body("businessUnitCode", equalTo("MWH.001"))
             .body("location", equalTo("ZWOLLE-001"));
   }
+
   @Test
   void givenWarehouseId_whenGetWarehouse_thenReturnWarehouse() {
 
     String request =
             """
-            {
-              "businessUnitCode":"MWH.TEST",
-              "location":"EINDHOVEN-001",
-              "capacity":50,
-              "stock":20
-            }
-            """;
+                    {
+                      "businessUnitCode":"MWH.GET.ID.TEST",
+                      "location":"AMSTERDAM-001",
+                      "capacity":20,
+                      "stock":10
+                    }
+                    """;
 
     String id =
             given()
@@ -376,8 +386,8 @@ public class WarehouseEndpointTest {
             .then()
             .statusCode(200)
             .body("id", equalTo(id))
-            .body("businessUnitCode", equalTo("MWH.TEST"))
-            .body("location", equalTo("EINDHOVEN-001"));
+            .body("businessUnitCode", equalTo("MWH.GET.ID.TEST"))
+            .body("location", equalTo("AMSTERDAM-001"));
   }
 
   @Test
@@ -385,13 +395,13 @@ public class WarehouseEndpointTest {
 
     String request =
             """
-            {
-              "businessUnitCode":"MWH.DELETE.TEST",
-              "location":"AMSTERDAM-002",
-              "capacity":20,
-              "stock":10
-            }
-            """;
+                    {
+                      "businessUnitCode":"MWH.DELETE.TEST",
+                      "location":"AMSTERDAM-002",
+                      "capacity":20,
+                      "stock":10
+                    }
+                    """;
 
     String id =
             given()
@@ -411,4 +421,52 @@ public class WarehouseEndpointTest {
             .statusCode(204);
   }
 
+  @Test
+  void givenAlreadyArchivedWarehouse_whenArchive_thenReturn400() {
+
+    String request =
+            """
+            {
+              "businessUnitCode":"%s",
+              "location":"AMSTERDAM-001",
+              "capacity":20,
+              "stock":5
+            }
+            """.formatted(
+                    "TEST.ARCHIVE." + System.currentTimeMillis()
+            );
+
+
+    Response createResponse =
+            given()
+                    .contentType(ContentType.JSON)
+                    .body(request)
+                    .when()
+                    .post(PATH);
+
+
+    createResponse.then()
+            .statusCode(200);
+
+
+    String warehouseId =
+            createResponse.jsonPath()
+                    .getString("id");
+
+
+    // First archive
+    given()
+            .when()
+            .delete(PATH + "/" + warehouseId)
+            .then()
+            .statusCode(204);
+
+
+    // Second archive
+    given()
+            .when()
+            .delete(PATH + "/" + warehouseId)
+            .then()
+            .statusCode(400);
+  }
 }

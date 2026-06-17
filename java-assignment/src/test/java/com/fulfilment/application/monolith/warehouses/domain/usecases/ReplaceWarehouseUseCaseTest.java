@@ -126,4 +126,80 @@ class ReplaceWarehouseUseCaseTest {
         verify(warehouseStore, never()).update(any());
         verify(warehouseStore, never()).create(any());
     }
+
+    @Test
+    void givenCapacityExceedsLocationLimit_whenReplace_thenThrowValidationException() {
+
+        Warehouse current = new Warehouse();
+        current.businessUnitCode = "MWH.001";
+        current.stock = 10;
+
+
+        Warehouse replacement = new Warehouse();
+        replacement.businessUnitCode = "MWH.001";
+        replacement.location = "AMSTERDAM-001";
+        replacement.capacity = 200;
+        replacement.stock = 10;
+
+
+        Location location =
+                new Location("AMSTERDAM-001", 5, 100);
+
+
+        when(warehouseStore.findByBusinessUnitCode("MWH.001"))
+                .thenReturn(current);
+
+
+        when(locationResolver.resolveByIdentifier("AMSTERDAM-001"))
+                .thenReturn(location);
+
+
+        assertThrows(
+                WarehouseValidationException.class,
+                () -> useCase.replace(replacement));
+
+        verify(warehouseStore, never())
+                .create(any());
+
+        verify(warehouseStore, never())
+                .update(any());
+    }
+
+    @Test
+    void givenStockGreaterThanCapacity_whenReplace_thenThrowValidationException() {
+
+        Warehouse current = new Warehouse();
+        current.businessUnitCode = "MWH.001";
+        current.stock = 60;
+
+        Warehouse replacement = new Warehouse();
+        replacement.businessUnitCode = "MWH.001";
+        replacement.capacity = 50;
+        replacement.stock = 60;
+
+        when(warehouseStore.findByBusinessUnitCode("MWH.001"))
+                .thenReturn(current);
+
+        assertThrows(
+                WarehouseValidationException.class,
+                () -> useCase.replace(replacement));
+    }
+    @Test
+    void givenNullStock_whenReplace_thenThrowValidationException() {
+
+        Warehouse current = new Warehouse();
+        current.businessUnitCode = "MWH.001";
+        current.stock = 10;
+
+        Warehouse replacement = new Warehouse();
+        replacement.businessUnitCode = "MWH.001";
+        replacement.stock = null;
+
+        when(warehouseStore.findByBusinessUnitCode("MWH.001"))
+                .thenReturn(current);
+
+        assertThrows(
+                WarehouseValidationException.class,
+                () -> useCase.replace(replacement));
+    }
 }

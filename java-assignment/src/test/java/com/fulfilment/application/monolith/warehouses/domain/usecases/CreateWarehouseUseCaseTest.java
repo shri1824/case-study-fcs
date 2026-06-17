@@ -16,6 +16,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.util.List;
+
 class CreateWarehouseUseCaseTest {
 
     private WarehouseStore warehouseStore;
@@ -115,4 +117,46 @@ class CreateWarehouseUseCaseTest {
 
         verify(warehouseStore, never()).create(any());
     }
+    @Test
+    void givenLocationAtMaximumWarehouseLimit_whenCreate_thenThrowValidationException() {
+
+        Warehouse warehouse = new Warehouse();
+        warehouse.businessUnitCode = "MWH.999";
+        warehouse.location = "EINDHOVEN-001";
+        warehouse.capacity = 50;
+        warehouse.stock = 20;
+
+
+        Location location =
+                new Location(
+                        "EINDHOVEN-001",
+                        1,
+                        70);
+
+
+        when(locationResolver.resolveByIdentifier("EINDHOVEN-001"))
+                .thenReturn(location);
+
+
+        Warehouse existingWarehouseAtSameLocation = new Warehouse();
+        existingWarehouseAtSameLocation.businessUnitCode = "MWH.001";
+        existingWarehouseAtSameLocation.location = "EINDHOVEN-001";
+        existingWarehouseAtSameLocation.capacity = 10;
+        existingWarehouseAtSameLocation.stock = 5;
+        existingWarehouseAtSameLocation.archivedAt = null;
+
+
+        when(warehouseStore.getAll())
+                .thenReturn(List.of(existingWarehouseAtSameLocation));
+
+
+        assertThrows(
+                WarehouseValidationException.class,
+                () -> useCase.create(warehouse));
+
+
+        verify(warehouseStore, never())
+                .create(any());
+    }
+
 }

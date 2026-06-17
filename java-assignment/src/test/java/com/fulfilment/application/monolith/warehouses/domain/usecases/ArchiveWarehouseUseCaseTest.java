@@ -51,4 +51,14 @@ class ArchiveWarehouseUseCaseTest {
 
         verify(warehouseStore, never()).update(any());
     }
+    @Test
+    void givenNullWarehouse_whenArchive_thenThrowValidationException() {
+
+        assertThrows(
+                WarehouseValidationException.class,
+                () -> useCase.archive(null));
+
+        verify(warehouseStore, never())
+                .update(any());
+    }
 }

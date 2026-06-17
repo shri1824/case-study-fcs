@@ -126,6 +126,8 @@ public class StoreResource {
 
     Store entity = findStoreOrThrow(id);
 
+    legacySync.syncDelete(entity);
+
     entity.delete();
 
     LOGGER.infof("Store deleted successfully. id=%d", id);
@@ -139,7 +141,7 @@ public class StoreResource {
     if (store == null) {
       throw new WebApplicationException(
               String.format(STORE_NOT_FOUND, id),
-              Status.BAD_REQUEST);
+              Status.NOT_FOUND);
     }
 
     return store;
@@ -149,7 +151,7 @@ public class StoreResource {
     if (store == null || store.name == null || store.name.isBlank()) {
       throw new WebApplicationException(
               STORE_NAME_REQUIRED,
-              Status.BAD_REQUEST);
+              422);
     }
   }
 }
